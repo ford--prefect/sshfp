@@ -22,16 +22,16 @@ except:
 try:
 	import sys
 	import argparse
-except ImportError , e:
+except ImportError as e:
 	module = str(e)[16:]
-	print >> sys.stderr, "dane requires the python module " + module
+	print("dane requires the python module " + module, file=sys.stderr)
 	if module in ["argparse", "ipcalc", "ldns"]:
-		print >> sys.stderr, "Fedora/CentOS: yum install " \
-                   + {"argparse":"python-argparse", "ipcalc": "python-ipcalc", "ldns": "ldns-python"}
-		print >> sys.stderr, "Debian/Ubuntu: apt-get install " \
-                   + {"argparse":"python-argparse", "ipcalc": "python-ipcalc", "ldns": "python-ldns"}
-		print >> sys.stderr, "openSUSE: zypper in " \
-                   + {"argparse":"python-argparse", "ipcalc": "python-ipcalc", "ldns": "python-ldns"}
+		print("Fedora/CentOS: yum install " \
+                   + {"argparse":"python-argparse", "ipcalc": "python-ipcalc", "ldns": "ldns-python"}, file=sys.stderr)
+		print("Debian/Ubuntu: apt-get install " \
+                   + {"argparse":"python-argparse", "ipcalc": "python-ipcalc", "ldns": "python-ldns"}, file=sys.stderr)
+		print("openSUSE: zypper in " \
+                   + {"argparse":"python-argparse", "ipcalc": "python-ipcalc", "ldns": "python-ldns"}, file=sys.stderr)
 	sys.exit(1)
 
 def create_txt(hostname, pubkey):
@@ -53,7 +53,7 @@ def checkExistingTLSA(hostname, certtype, reftype):
 	res = ldnsx.resolver() #Get the appropriate resource records...
 	pkt = res.query(hostname, "TYPE65468", tries = 3)
 	pres_TLSAs=set(pkt.answer(rr_type="TYPE65468"))
-	pres_TLSAs = map(lambda rr: str(rr).strip(), pres_TLSAs)
+	pres_TLSAs = [str(rr).strip() for rr in pres_TLSAs]
 	
 	TLSAs = set(create_TLSAs(hostname, certtype,reftype).split('\n'))
 	
@@ -125,22 +125,22 @@ def get_cert(hostname, address):
 		else:
 			conn = socket.socket(socket.AF_INET)
 		conn.connect((address, 443))
-	except socket.error , e:
+	except socket.error as e:
 		#raise Exception("%s (%s): %s"%(hostname, address, str(e)))
-		print >> sys.stderr, "%s (%s): %s"%(hostname, address, str(e))
+		print("%s (%s): %s"%(hostname, address, str(e)), file=sys.stderr)
 		return
 	try:
 		if 'HAS_SNI' in dir(ssl) and ssl.HAS_SNI:
 			sock = ssl.wrap_socket(conn, server_hostname=hostname)
 		else:
 			sock = ssl.wrap_socket(conn)
-	except ssl.SSLError , e:
+	except ssl.SSLError as e:
 		#raise Exception("%s (%s): %s"%(hostname, address, str(e)))
-		print >> sys.stderr, "%s (%s): %s"%(hostname, address, str(e))
+		print("%s (%s): %s"%(hostname, address, str(e)), file=sys.stderr)
 		return
 	try:
 		dercert = sock.getpeercert(True)
-	except AttributeError , e:
+	except AttributeError as e:
 		#print >> sys.stderr, "%s (%s): %s"%(hostname, address, str(e))
 		return
 	sock.close()
@@ -256,7 +256,7 @@ for host in args.hosts:
 		host += "."
 if not args.axfr:
 	for host in args.hosts:
-		print create_tlsa(host,1,reftype)
+		print(create_tlsa(host,1,reftype))
 if args.axfr:
 	# Try and AXFR it
 	if len(args.nameserver) == 0:
@@ -272,9 +272,9 @@ if args.axfr:
 				ipv6.append(rr.owner())
 		if transport != "ipv6":
 			for host in ipv4:
-				print create_tlsa(host,1,reftype)
+				print(create_tlsa(host,1,reftype))
 		if transport != "ipv4":
 			for host in ipv6:
-				print create_tlsa(host,1,reftype)
+				print(create_tlsa(host,1,reftype))
 
 

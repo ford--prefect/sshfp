@@ -45,18 +45,18 @@ import time, sys, calendar, warnings
 try:
 	import ipcalc
 except ImportError:
-	print >> sys.stderr, "ldnsx requires the python-ipcalc"
-	print >> sys.stderr, "Fedora/CentOS: yum install python-ipcalc"
-	print >> sys.stderr, "Debian/Ubuntu: apt-get install python-ipcalc"
-	print >> sys.stderr, "openSUSE: zypper in python-ipcalc"
+	print("ldnsx requires the python-ipcalc", file=sys.stderr)
+	print("Fedora/CentOS: yum install python-ipcalc", file=sys.stderr)
+	print("Debian/Ubuntu: apt-get install python-ipcalc", file=sys.stderr)
+	print("openSUSE: zypper in python-ipcalc", file=sys.stderr)
 	sys.exit(1)
 try:
 	import ldns
 except ImportError:
-	print >> sys.stderr, "ldnsx requires the ldns-python sub-package from http://www.nlnetlabs.nl/projects/ldns/"
-	print >> sys.stderr, "Fedora/CentOS: yum install ldns-python"
-	print >> sys.stderr, "Debian/Ubuntu: apt-get install python-ldns"
-	print >> sys.stderr, "openSUSE: zypper in python-ldns"
+	print("ldnsx requires the ldns-python sub-package from http://www.nlnetlabs.nl/projects/ldns/", file=sys.stderr)
+	print("Fedora/CentOS: yum install ldns-python", file=sys.stderr)
+	print("Debian/Ubuntu: apt-get install python-ldns", file=sys.stderr)
+	print("openSUSE: zypper in python-ldns", file=sys.stderr)
 	sys.exit(1)
 
 __version__ = "-0.5"
@@ -209,8 +209,8 @@ class resolver:
 		if ns != None:
 			self.drop_nameservers()
 			nm_list = ns.split(',')
-			nm_list = map(lambda s: s.strip(), nm_list)
-			nm_list = filter(lambda s: s != "", nm_list)
+			nm_list = [s.strip() for s in nm_list]
+			nm_list = [s for s in nm_list if s != ""]
 			nm_list.reverse()
 			for nm in nm_list:
 				self.add_nameserver(nm)
@@ -275,7 +275,7 @@ class resolver:
 			determine what rr_type menmonics we support, please refer to resolver.supported_rr_types()
 
 		"""
-		if rr_type in _rr_types.keys():
+		if rr_type in list(_rr_types.keys()):
 			_rr_type = _rr_types[rr_type]
 		elif isinstance(rr_type,int):
 			_rr_type = rr_type
@@ -328,7 +328,7 @@ class resolver:
 			http://www.iana.org/assignments/dns-parameters
 
 		"""
-		return _rr_types.keys()
+		return list(_rr_types.keys())
 	
 	def AXFR(self,name):
 		"""AXFR for name
@@ -483,8 +483,8 @@ class packet:
 					return True
 			return False
 		def f(rr):
-			for key in kwds.keys():
-				if ( ( isinstance(kwds[key], list) and str(rr[key]) not in map(str,kwds[key]) )
+			for key in list(kwds.keys()):
+				if ( ( isinstance(kwds[key], list) and str(rr[key]) not in list(map(str,kwds[key])) )
 				  or ( not isinstance(kwds[key], list) and not match(str(kwds[key]), str(rr[key])))):
 					return False
 			return True
@@ -614,7 +614,7 @@ class packet:
 		format. Using lists is depricated.
 		"""
 		ret =  [resource_record(rr) for rr in self._ldns_pkt.answer().rrs()]
-		return filter(self._construct_rr_filter(**filters), ret)
+		return list(filter(self._construct_rr_filter(**filters), ret))
 
 	def authority(self, **filters):
 		"""Returns the authority section.
@@ -640,7 +640,7 @@ class packet:
 
 		"""
 		ret = [resource_record(rr) for rr in self._ldns_pkt.authority().rrs()]
-		return filter(self._construct_rr_filter(**filters), ret)
+		return list(filter(self._construct_rr_filter(**filters), ret))
 
 	def additional(self, **filters):
 		"""Returns the additional section.
@@ -666,7 +666,7 @@ class packet:
 
 		"""
 		ret = [resource_record(rr) for rr in self._ldns_pkt.additional().rrs()]
-		return filter(self._construct_rr_filter(**filters), ret)
+		return list(filter(self._construct_rr_filter(**filters), ret))
 
 	def question(self, **filters):
 		"""Returns the question section.
@@ -681,7 +681,7 @@ class packet:
 
 		"""
 		ret = [resource_record(rr) for rr in self._ldns_pkt.question().rrs()]
-		return filter(self._construct_rr_filter(**filters), ret)
+		return list(filter(self._construct_rr_filter(**filters), ret))
 
 class resource_record:
 	
@@ -701,7 +701,7 @@ class resource_record:
 		self._iter_pos = 0
 		return self
 
-	def next(self):
+	def __next__(self):
 		if self._iter_pos < len(self._rdfs):
 			self._iter_pos += 1
 			return self._rdfs[self._iter_pos-1]
